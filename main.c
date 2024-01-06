@@ -58,9 +58,9 @@ const char* typeToString(enum Type type) {
     }
 }
 void printProcs(struct Proc procs[], int size) {
-    printf("Process Name\tPriority\tArrival Time\tType\n");
+    printf("Process Name\tPriority\tArrival Time\tType\tIsFinished\n");
     for (int i = 0; i < size; i++) {
-        printf("%s\t\t%d\t\t%d\t\t%s\n", procs[i].name, procs[i].priority, procs[i].arrival_time, typeToString(procs[i].type));
+        printf("%s\t\t%d\t\t%d\t\t%s\t%d\t\n", procs[i].name, procs[i].priority, procs[i].arrival_time, typeToString(procs[i].type),procs[i].isFinished);
     }
 }
 void printProcs2(struct Proc *procs[], int size) {
@@ -103,6 +103,43 @@ int compareProcs(const void *a, const void *b) {
     // If both arrival times and priorities are the same, compare names
     return strcmp(procA->name, procB->name);
 }
+int compareProcsForTime(const void *a, const void *b) {
+    struct Proc *procA = (struct Proc *)a;
+    struct Proc *procB = (struct Proc *)b;
+
+    if(procA->isFinished != procB->isFinished){
+        return procA->isFinished - procB->isFinished;
+    }
+    if (procA->arrival_time != procB->arrival_time) {
+        return procA->arrival_time - procB->arrival_time;
+    }
+    if(procA->type==SILVER && procB->type==PLATINUM){
+        return 1;
+    }
+    if(procA->type==PLATINUM && procB->type==SILVER){
+        return -1;
+    }
+    if(procA->type==PLATINUM && procB->type==GOLD){
+        return -1;
+    }
+
+    if(procA->type==GOLD && procB->type==PLATINUM){
+        return 1;
+    }
+    if (procA->priority != procB->priority) {
+        return procB->priority - procA->priority;
+    }
+
+    // Compare arrival time
+
+
+    // If arrival times are the same, compare priorities
+
+
+    // If both arrival times and priorities are the same, compare names
+    return strcmp(procA->name, procB->name);
+}
+
 
 
 void readInstructionsFromFile(const char *fileName, struct Instr instructions[], int *instructionCount) {
@@ -141,9 +178,11 @@ void populateProcessInstructions(struct Proc *proc) {
     snprintf(fileName, sizeof(fileName), "C:\\Users\\ebaser\\CLionProjects\\p2\\%s.txt", proc->name);
     readInstructionsFromFile(fileName, proc->process_instructions, &proc->last_instruction);
 }
+int init = 0;
 
 int main() {
     int burst_time_total=0;
+
 
     FILE *file = fopen("C:\\Users\\ebaser\\CLionProjects\\p2\\instructions.txt", "r");  // Replace "file.txt" with your file name
 
@@ -177,7 +216,7 @@ int main() {
     /*for (int i = 1; i <= 21; i++) {
         printf("instr%d %d\n", i, instruction_times[i-1]);
     }*/
-    FILE *procFiles = fopen("C:\\Users\\ebaser\\CLionProjects\\p2\\def5.txt", "r");
+    FILE *procFiles = fopen("C:\\Users\\ebaser\\CLionProjects\\p2\\def9.txt", "r");
     if (!procFiles) {
         perror("Unable to open file");
         return 1;
@@ -211,10 +250,17 @@ int main() {
     printProcs(procs, count);
     int curr_time = 0;
     int turnaround=0;
+
     while(1) {
-        struct Proc *procs_temp[20];
+        bool allFinished = true;
+        int test = 0;
         int temp_count = 0;
+
+        init++;
+        struct Proc *procs_temp[20];
+
         qsort(procs, count, sizeof(struct Proc), compareProcs);
+        printProcs(procs,count);
         for (int i = 0; i < count; i++) {
 
 
@@ -226,7 +272,21 @@ int main() {
 
 
         }
-        if(!procs_temp[0]->is_last){
+        for(int i = 0 ; i<count;i++){
+            if(!procs[i].isFinished){
+                allFinished=false;
+            }
+        }
+        printf("temp_count is %d \n",temp_count);
+        printf("count is %d \n",count);
+        if(procs_temp[0]->isFinished && !allFinished ){
+            qsort(procs, count, sizeof(struct Proc), compareProcsForTime);
+            printf("arr %d \n",procs[0].arrival_time);
+            curr_time=procs[0].real_arrival_time;
+            continue;
+        }
+
+        if(!procs_temp[0]->is_last && !allFinished){
             printf("Context switch here \n");
             curr_time+=10;
         }
@@ -266,7 +326,9 @@ int main() {
             continue;
         }
         else if(procs_temp[0]->type==SILVER){
+
             if(!procs_temp[0]->is_last){
+
                 procs_temp[0]->CPU_time=0;
             }
             if(procs_temp[0]->CPU_time<SILVER_QUANTUM) {
@@ -309,6 +371,10 @@ int main() {
         }
         // GOLD BLOCK
         else{
+            if(!procs_temp[0]->is_last){
+                procs_temp[0]->CPU_time=0;
+            }
+            //Üst taraf yeni eklendi. 11.49
             if(procs_temp[0]->CPU_time<GOLD_QUANTUM) {
                 int index = procs_temp[0]->last_instruction;
 
