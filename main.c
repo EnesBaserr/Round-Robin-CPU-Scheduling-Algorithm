@@ -216,7 +216,7 @@ int main() {
     /*for (int i = 1; i <= 21; i++) {
         printf("instr%d %d\n", i, instruction_times[i-1]);
     }*/
-    FILE *procFiles = fopen("C:\\Users\\ebaser\\CLionProjects\\p2\\def9.txt", "r");
+    FILE *procFiles = fopen("C:\\Users\\ebaser\\CLionProjects\\p2\\definition.txt", "r");
     if (!procFiles) {
         perror("Unable to open file");
         return 1;
@@ -238,7 +238,7 @@ int main() {
 
     fclose(procFiles);
 
-    printProcs(procs, count);
+   // printProcs(procs, count);
     for (int i = 0; i < count; i++) {
 
         populateProcessInstructions(&procs[i]);
@@ -247,7 +247,7 @@ int main() {
     //TODO : current time 0 dan basla. Koşullara göre instructionları uygula
     // her instructionda sortla ve tekrar isleme al (Arrayin headi !!!).
     // Type dönüstürme kosulunu yaz. Global bi variableda süreleri tut. Last inst indexi tut.
-    printProcs(procs, count);
+   // printProcs(procs, count);
     int curr_time = 0;
     int turnaround=0;
 
@@ -258,9 +258,22 @@ int main() {
 
         init++;
         struct Proc *procs_temp[20];
+        struct  Proc *proc_last;
+        if(init !=0) {
+            for(int i = 0 ; i<count ; i++){
+                if(procs[i].is_last){
+                    proc_last = &procs[i];
+                }
+            }
+
+        }
+
+
+
+
 
         qsort(procs, count, sizeof(struct Proc), compareProcs);
-        printProcs(procs,count);
+       // printProcs(procs,count);
         for (int i = 0; i < count; i++) {
 
 
@@ -271,6 +284,39 @@ int main() {
             }
 
 
+        }
+        if(strcmp(proc_last->name,procs_temp[0]->name)!=0 && init>1){
+            printProcs(procs,count);
+            printf("Preemption from %s to %s \n",proc_last->name,procs_temp[0]->name);
+            if(proc_last->type==SILVER && proc_last->quantum_number<3&&proc_last->CPU_time!=0 ){
+                proc_last->quantum_number++;
+                if(proc_last->CPU_time>=SILVER_QUANTUM){
+                    proc_last->arrival_time=curr_time;
+                }
+                if(proc_last->quantum_number==3){
+                    proc_last->quantum_number=0;
+                    proc_last->type=GOLD;
+                    proc_last->CPU_time=0;
+                }
+                proc_last->arrival_time=curr_time;
+
+
+
+            }
+            if(proc_last->type==GOLD && proc_last->quantum_number<5 &&proc_last->CPU_time!=0){
+                proc_last->quantum_number++;
+                if(proc_last->CPU_time>=GOLD_QUANTUM){
+                    proc_last->arrival_time=curr_time;
+                }
+                if(proc_last->quantum_number==5){
+                    proc_last->quantum_number=0;
+                    proc_last->type=PLATINUM;
+                    proc_last->CPU_time=0;
+                }
+                proc_last->arrival_time=curr_time;
+
+
+            }
         }
         for(int i = 0 ; i<count;i++){
             if(!procs[i].isFinished){
@@ -354,7 +400,7 @@ int main() {
 
 
                 procs_temp[0]->CPU_time+=procs_temp[0]->process_instructions[index].duration;
-                printf("IN SILVER BLOCK and P--name is %s and Current time is :  %d\n", procs_temp[0]->name, curr_time);
+                printf("IN SILVER BLOCK and P--name is %s and Current time is : %d AND INST : %s \n", procs_temp[0]->name, curr_time,procs_temp[0]->process_instructions[index].strValue);
                 continue;
             }
             else{
@@ -398,7 +444,7 @@ int main() {
 
                 procs_temp[0]->CPU_time+=procs_temp[0]->process_instructions[index].duration;
 
-                printf("IN GOLD BLOCK and P--name is %s and Current time is :  %d\n", procs_temp[0]->name, curr_time);
+                printf("IN GOLD BLOCK and P--name is %s and Current time is : %d AND INST : %s \n", procs_temp[0]->name, curr_time,procs_temp[0]->process_instructions[index].strValue);
                 continue;
             }
             else{
@@ -408,6 +454,7 @@ int main() {
                     procs_temp[0]->type=PLATINUM;
                 }
                 procs_temp[0]->CPU_time=0;
+                printf("here is %s \n",procs_temp[0]->name);
                 procs_temp[0]->arrival_time=curr_time;
                 continue;
 
