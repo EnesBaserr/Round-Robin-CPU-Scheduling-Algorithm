@@ -58,15 +58,15 @@ const char* typeToString(enum Type type) {
     }
 }
 void printProcs(struct Proc procs[], int size) {
-    printf("Process Name\tPriority\tArrival Time\tType\tIsFinished\n");
+    //printf("Process Name\tPriority\tArrival Time\tType\tIsFinished\n");
     for (int i = 0; i < size; i++) {
-        printf("%s\t\t%d\t\t%d\t\t%s\t%d\t\n", procs[i].name, procs[i].priority, procs[i].arrival_time, typeToString(procs[i].type),procs[i].isFinished);
+       // printf("%s\t\t%d\t\t%d\t\t%s\t%d\t\n", procs[i].name, procs[i].priority, procs[i].arrival_time, typeToString(procs[i].type),procs[i].isFinished);
     }
 }
 void printProcs2(struct Proc *procs[], int size) {
     printf("Process Name\tPriority\tArrival Time\tType\n");
     for (int i = 0; i < size; i++) {
-        printf("%s\t\t%d\t\t%d\t\t%s\n", procs[i]->name, procs[i]->priority, procs[i]->arrival_time, typeToString(procs[i]->type));
+        //printf("%s\t\t%d\t\t%d\t\t%s\n", procs[i]->name, procs[i]->priority, procs[i]->arrival_time, typeToString(procs[i]->type));
     }
 }
 int compareProcs(const void *a, const void *b) {
@@ -156,7 +156,7 @@ void readInstructionsFromFile(const char *fileName, struct Instr instructions[],
         strcpy(copied,instructions[count].strValue);
         token = strtok(copied,"r");
         token = strtok(NULL,"\0");
-        printf("Token is : %s\n",token);
+       //printf("Token is : %s\n",token);
         if(token !=NULL){
             int index = atoi(token);
             int time = instruction_times[index-1];
@@ -175,7 +175,7 @@ void readInstructionsFromFile(const char *fileName, struct Instr instructions[],
 
 void populateProcessInstructions(struct Proc *proc) {
     char fileName[50]; // Assuming the file name won't exceed 50 characters
-    snprintf(fileName, sizeof(fileName), "C:\\Users\\ebaser\\CLionProjects\\p2\\%s.txt", proc->name);
+    snprintf(fileName, sizeof(fileName), "%s.txt", proc->name);
     readInstructionsFromFile(fileName, proc->process_instructions, &proc->last_instruction);
 }
 int init = 0;
@@ -184,7 +184,7 @@ int main() {
     int burst_time_total=0;
 
 
-    FILE *file = fopen("C:\\Users\\ebaser\\CLionProjects\\p2\\instructions.txt", "r");  // Replace "file.txt" with your file name
+    FILE *file = fopen("instructions.txt", "r");  // Replace "file.txt" with your file name
 
     if (file == NULL) {
         printf("Error opening the file.\n");
@@ -216,7 +216,7 @@ int main() {
     /*for (int i = 1; i <= 21; i++) {
         printf("instr%d %d\n", i, instruction_times[i-1]);
     }*/
-    FILE *procFiles = fopen("C:\\Users\\ebaser\\CLionProjects\\p2\\definition.txt", "r");
+    FILE *procFiles = fopen("definition.txt", "r");
     if (!procFiles) {
         perror("Unable to open file");
         return 1;
@@ -231,7 +231,7 @@ int main() {
         procs[count].real_arrival_time=real;
         count++;
         if (count > 10) {
-            printf("Too many processes in the file. Only the first 10 will be processed.\n");
+            //("Too many processes in the file. Only the first 10 will be processed.\n");
             break;
         }
     }
@@ -263,6 +263,7 @@ int main() {
             for(int i = 0 ; i<count ; i++){
                 if(procs[i].is_last){
                     proc_last = &procs[i];
+                    //printf("proc_last is %s \n",proc_last->name);
                 }
             }
 
@@ -285,9 +286,10 @@ int main() {
 
 
         }
-        if(strcmp(proc_last->name,procs_temp[0]->name)!=0 && init>1){
+        
+        if(proc_last!=NULL&&strcmp(proc_last->name,procs_temp[0]->name)!=0 && init>1){
             printProcs(procs,count);
-            printf("Preemption from %s to %s \n",proc_last->name,procs_temp[0]->name);
+            //printf("Preemption from2 %s to %s \n",proc_last->name,procs_temp[0]->name);
             if(proc_last->type==SILVER && proc_last->quantum_number<3&&proc_last->CPU_time!=0 ){
                 proc_last->quantum_number++;
                 if(proc_last->CPU_time>=SILVER_QUANTUM){
@@ -323,8 +325,8 @@ int main() {
                 allFinished=false;
             }
         }
-        printf("temp_count is %d \n",temp_count);
-        printf("count is %d \n",count);
+        //printf("temp_count is %d \n",temp_count);
+        //printf("count is %d \n",count);
         if(procs_temp[0]->isFinished && !allFinished ){
             qsort(procs, count, sizeof(struct Proc), compareProcsForTime);
             printf("arr %d \n",procs[0].arrival_time);
@@ -333,7 +335,7 @@ int main() {
         }
 
         if(!procs_temp[0]->is_last && !allFinished){
-            printf("Context switch here \n");
+            //printf("Context switch here \n");
             curr_time+=10;
         }
         //printProcs2(procs_temp, temp_count);
@@ -341,10 +343,20 @@ int main() {
             for(int k = 0 ; k<count;k++){
                 burst_time_total+=procs[k].burst_time;
             }
+            
+            if ((float) (turnaround - burst_time_total) / count != (int) ((turnaround - burst_time_total) / count)) {
+                printf("%.1f\n", (float) (turnaround - burst_time_total) / count);
+            } else {
+                printf("%d\n", (int) ((turnaround - burst_time_total) / count));
+            }
 
-            printf("AVG Turnaround  time is : %.1f\n", (float) turnaround / (float) count);
-            printf("Waiting time is : %.1f\n", ((float) turnaround - (float) burst_time_total)/ (float) count);
-            printf("Current time is : %d",curr_time);
+            if ((float) turnaround / count != (int) (turnaround / count)) {
+                printf("%.1f\n", (float) turnaround / count);
+            } else {
+                printf("%d\n", (int) (turnaround / count));
+            }
+            
+           // printf("Current time is : %d",curr_time);
             break;
         }
         //curr_time+=10; // Context switch.
@@ -368,7 +380,7 @@ int main() {
             procs_temp[0]->isFinished=1;
             curr_time+=time_elapsed;
             turnaround+=curr_time-procs_temp[0]->real_arrival_time;
-            printf("IN PLATINUM BLOCK and P--name is %s and Current time is : %d\n",procs_temp[0]->name,curr_time);
+            //("IN PLATINUM BLOCK and P--name is %s and Current time is : %d\n",procs_temp[0]->name,curr_time);
             continue;
         }
         else if(procs_temp[0]->type==SILVER){
@@ -385,7 +397,7 @@ int main() {
                 }
                 procs_temp[0]->is_last=true;
                 if (strncmp(procs_temp[0]->process_instructions[index].strValue, "exit", 4) == 0) {
-                        printf("EXIT HIT IN SILVER BLOCK !!! \n");
+                       // printf("EXIT HIT IN SILVER BLOCK !!! \n");
                         curr_time += procs_temp[0]->process_instructions[index].duration;
                     turnaround += curr_time-procs_temp[0]->real_arrival_time;
                     procs_temp[0]->last_instruction++;
@@ -400,7 +412,7 @@ int main() {
 
 
                 procs_temp[0]->CPU_time+=procs_temp[0]->process_instructions[index].duration;
-                printf("IN SILVER BLOCK and P--name is %s and Current time is : %d AND INST : %s \n", procs_temp[0]->name, curr_time,procs_temp[0]->process_instructions[index].strValue);
+                //printf("IN SILVER BLOCK and P--name is %s and Current time is : %d AND INST : %s \n", procs_temp[0]->name, curr_time,procs_temp[0]->process_instructions[index].strValue);
                 continue;
             }
             else{
@@ -429,7 +441,7 @@ int main() {
                 }
                 procs_temp[0]->is_last=true;
                 if (strncmp(procs_temp[0]->process_instructions[index].strValue, "exit", 4) == 0) {
-                    printf("EXIT HIT IN GOLD BLOCK !!! \n");
+                   // printf("EXIT HIT IN GOLD BLOCK !!! \n");
                     curr_time += procs_temp[0]->process_instructions[index].duration;
                     turnaround+=curr_time-procs_temp[0]->real_arrival_time;
                     procs_temp[0]->last_instruction++;
@@ -444,7 +456,7 @@ int main() {
 
                 procs_temp[0]->CPU_time+=procs_temp[0]->process_instructions[index].duration;
 
-                printf("IN GOLD BLOCK and P--name is %s and Current time is : %d AND INST : %s \n", procs_temp[0]->name, curr_time,procs_temp[0]->process_instructions[index].strValue);
+                //printf("IN GOLD BLOCK and P--name is %s and Current time is : %d AND INST : %s \n", procs_temp[0]->name, curr_time,procs_temp[0]->process_instructions[index].strValue);
                 continue;
             }
             else{
@@ -454,7 +466,7 @@ int main() {
                     procs_temp[0]->type=PLATINUM;
                 }
                 procs_temp[0]->CPU_time=0;
-                printf("here is %s \n",procs_temp[0]->name);
+                //printf("here is %s \n",procs_temp[0]->name);
                 procs_temp[0]->arrival_time=curr_time;
                 continue;
 
